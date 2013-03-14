@@ -4,6 +4,7 @@ public class GameLogic implements IGameLogic {
     private int m = 0;
     private int playerID;
     private GameState state;
+    private int cutoff = 15;
     
     public GameLogic() {
         //TODO Write your implementation for this method
@@ -82,7 +83,7 @@ public class GameLogic implements IGameLogic {
     	{
     		if(state.coinsInColumn(i) < m)
     		{
-    			int val = minValue(state.result(i));
+    			int val = minValue(state.result(i), Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
     			System.out.println("Column " + i + " has utility " + val);
     			if(resultUtil < val)
 				{
@@ -94,28 +95,31 @@ public class GameLogic implements IGameLogic {
     	return resultAction;
     }
     
-    private int minValue(GameState state)
+    private int minValue(GameState state, double a, double b, int depth)
     {
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
     	{
     		return utility(winner);
     	}
+    	depth++;
     	
     	int result = Integer.MAX_VALUE;
     	for(int i = 0; i < n; i++)
     	{
     		if(state.coinsInColumn(i) < m)
     		{
-	    		int val = maxValue(state.result(i));
-				if(result > val) result = val;
+    			if (depth > cutoff) return h(state);
+	    		result = Math.min(maxValue(state.result(i), a, b, depth), result);
+				if (result <= a) return result;
+				b = Math.min(b, result);
     		}
     	}
     	
     	return result;
     }
     
-    private int maxValue(GameState state)
+    private int maxValue(GameState state, double a, double b, int depth)
     {
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
@@ -123,17 +127,65 @@ public class GameLogic implements IGameLogic {
     		return utility(winner);
     	}
     	
+    	depth++;
+    	
     	int result = Integer.MIN_VALUE;
     	for(int i = 0; i < n; i++)
     	{
     		if(state.coinsInColumn(i) < m)
     		{
-        		int val = minValue(state.result(i));
-    			if(result < val) result = val;
+    			if (depth > cutoff) return h(state);
+    			result = Math.max(minValue(state.result(i), a, b, depth), result);
+        		if (result >= b) return result;
+    			a = Math.max(a, result);
     		}
     	}
     	
     	return result;
+    }
+    
+    private int h(GameState state) {
+    	// Ideas
+    	//  - Simple check, can any of the players win in this state?
+    	//  - Give points for all "friendly" neighbors (+ points for own and - for opponent)
+    	//double result = 0;
+    	int result = 0;
+    	
+    	for(int i = 0; i < n; i++)
+    	{
+    		for(int j = 0; j < m; j++)
+    		{
+				if(state.ps(i,j) != -1)
+				{
+	    			result += friendlyNeighbours(i, j, state);
+				}
+    		}
+    	}
+    	/*System.out.println("result is "+result);
+    	System.out.println("div. result is "+1.0/result);*/
+    	
+    	return result;
+    	//return 1.0/result;
+    }
+    
+    private int friendlyNeighbours(int x, int y, GameState state) {
+    	int[][] neighbours = new int[][] { {x, y-1}, {x, y+1}, {x-1, y}, {x+1, y}, {x+1,y+1}, {x-1,y-1}, {x+1, y-1}, {x-1, y+1} };
+    	int result = 0;
+    	int fieldPlayer = state.ps(x, y);
+    	int currentPlayer = state.getCurrentPlayer();
+    	
+    	for(int[] nb : neighbours)
+    	{
+			if (neighbourIsFriendly(nb[0], nb[1], fieldPlayer)) {
+				if (fieldPlayer == currentPlayer) result++;
+				else result--;
+			}
+    	}
+    	return result;
+    }
+    
+    private boolean neighbourIsFriendly(int x, int y, int playerID) {
+    	return state.ps(x, y) == playerID;
     }
     
     private int utility(Winner winner)
