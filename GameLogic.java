@@ -140,6 +140,7 @@ public class GameLogic implements IGameLogic {
     {
     	if(winner == Winner.PLAYER1 && this.playerID == 1) return 1;
     	else if(winner == Winner.PLAYER2 && this.playerID == 2) return 1;
+    	else if(winner == Winner.TIE) return 0;
     	return -1;
     }
     
