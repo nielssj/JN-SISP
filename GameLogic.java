@@ -4,7 +4,7 @@ public class GameLogic implements IGameLogic {
     private int m = 0;
     private int playerID;
     private GameState state;
-    private int cutoff = 15;
+    private int cutoff = 8;
     
     public GameLogic() {
         //TODO Write your implementation for this method
@@ -77,13 +77,13 @@ public class GameLogic implements IGameLogic {
     private int minmaxDecision(GameState state)
     {
     	// Loop through potential actions (columns)
-    	int resultUtil = Integer.MIN_VALUE;
+    	double resultUtil = Double.NEGATIVE_INFINITY;
     	int resultAction = -1;
     	for(int i = 0; i < n; i++)
     	{
     		if(state.coinsInColumn(i) < m)
     		{
-    			int val = minValue(state.result(i), Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
+    			double val = minValue(state.result(i), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
     			System.out.println("Column " + i + " has utility " + val);
     			if(resultUtil < val)
 				{
@@ -95,7 +95,7 @@ public class GameLogic implements IGameLogic {
     	return resultAction;
     }
     
-    private int minValue(GameState state, double a, double b, int depth)
+    private double minValue(GameState state, double a, double b, int depth)
     {
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
@@ -104,7 +104,7 @@ public class GameLogic implements IGameLogic {
     	}
     	depth++;
     	
-    	int result = Integer.MAX_VALUE;
+    	double result = Double.POSITIVE_INFINITY;
     	for(int i = 0; i < n; i++)
     	{
     		if(state.coinsInColumn(i) < m)
@@ -119,7 +119,7 @@ public class GameLogic implements IGameLogic {
     	return result;
     }
     
-    private int maxValue(GameState state, double a, double b, int depth)
+    private double maxValue(GameState state, double a, double b, int depth)
     {
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
@@ -129,7 +129,7 @@ public class GameLogic implements IGameLogic {
     	
     	depth++;
     	
-    	int result = Integer.MIN_VALUE;
+    	double result = Double.NEGATIVE_INFINITY;
     	for(int i = 0; i < n; i++)
     	{
     		if(state.coinsInColumn(i) < m)
@@ -144,12 +144,8 @@ public class GameLogic implements IGameLogic {
     	return result;
     }
     
-    private int h(GameState state) {
-    	// Ideas
-    	//  - Simple check, can any of the players win in this state?
-    	//  - Give points for all "friendly" neighbors (+ points for own and - for opponent)
-    	//double result = 0;
-    	int result = 0;
+    private double h(GameState state) {
+    	double result = 0;
     	
     	for(int i = 0; i < n; i++)
     	{
@@ -161,11 +157,8 @@ public class GameLogic implements IGameLogic {
 				}
     		}
     	}
-    	/*System.out.println("result is "+result);
-    	System.out.println("div. result is "+1.0/result);*/
     	
-    	return result;
-    	//return 1.0/result;
+    	return result/1000.0;
     }
     
     private int friendlyNeighbours(int x, int y, GameState state) {
