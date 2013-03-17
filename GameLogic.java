@@ -11,7 +11,7 @@ public class GameLogic implements IGameLogic {
     private GameState state;
     
     private int cutoff;
-    private boolean done;
+    private boolean done = false;
     private Date deadline;
     private int timeLimit = 5; // Seconds
     
@@ -115,6 +115,7 @@ public class GameLogic implements IGameLogic {
     		
     		if(done)
     		{
+    			done = false;
     			break;
     		}
     		cutoff++;
@@ -149,9 +150,9 @@ public class GameLogic implements IGameLogic {
     				return resultAction;
 				}
     			// Tweak: If obvious move prevents opponent from winning.
-    			if(resultUtil == -1 && cutoff == 2)
+    			if(resultUtil == -1 && cutoff == 1)
     			{
-    				if(debugPrint) System.out.format("Obvious move, otherwise opponent wins%n");
+    				if(debugPrint && !done) System.out.format("Obvious move, otherwise opponent wins%n");
     				done = true;
     			}
     		}
@@ -253,9 +254,9 @@ public class GameLogic implements IGameLogic {
     
     private int utility(Winner winner)
     {
-    	if(winner == Winner.PLAYER1 && this.playerID == 1) return 1;
+    	if(winner == Winner.TIE) return 0;
+    	else if (winner == Winner.PLAYER1 && this.playerID == 1) return 1;
     	else if(winner == Winner.PLAYER2 && this.playerID == 2) return 1;
-    	else if(winner == Winner.TIE) return 0;
     	return -1;
     }
     
