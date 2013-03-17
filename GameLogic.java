@@ -11,6 +11,7 @@ public class GameLogic implements IGameLogic {
     private GameState state;
     
     private int cutoff;
+    private boolean done;
     private Date deadline;
     private int timeLimit = 5; // Seconds
     
@@ -99,7 +100,6 @@ public class GameLogic implements IGameLogic {
         		{
     				latestStart = now;
         			result = minmaxDecision(this.state);
-    	    		cutoff++;
         		}
         		catch(TimeoutException e) 
         		{
@@ -112,9 +112,15 @@ public class GameLogic implements IGameLogic {
     			if(debugPrint) System.out.format("Evaluation with cutoff %d not persued because too little time remaining%n", cutoff);
     			break;
     		}
+    		
+    		if(done)
+    		{
+    			break;
+    		}
+    		cutoff++;
     	}
     	
-    	System.out.format("Result from search with cutoff: %d%n", cutoff);
+    	System.out.format("Result from search with cutoff = %d: column #%d%n", cutoff, result);
     	return result;
     }
     
@@ -134,6 +140,20 @@ public class GameLogic implements IGameLogic {
     				resultAction = i;
     				resultUtil = val;
 				}
+    			
+    			// Tweak: If obvious move results in victory.
+    			if(resultUtil == 1 && cutoff == 1) 
+				{
+    				if(debugPrint) System.out.format("Obvious move, it leads to victory!%n");
+    				done = true;
+    				return resultAction;
+				}
+    			// Tweak: If obvious move prevents opponent from winning.
+    			if(resultUtil == -1 && cutoff == 2)
+    			{
+    				if(debugPrint) System.out.format("Obvious move, otherwise opponent wins%n");
+    				done = true;
+    			}
     		}
     	}
     	return resultAction;
