@@ -83,18 +83,18 @@ public class GameLogic implements IGameLogic {
     	deadline = cal.getTime();
     	
     	// Start search with increasing cutoff
-    	System.out.format("Starting search with %d seconds timelimit...\n", timeLimit);
+    	System.out.format("Starting search with %d seconds timelimit...%n", timeLimit);
     	long latestStart = new Date().getTime();
     	while(new Date().before(deadline))
     	{
     		long now = new Date().getTime();
     		long latestElapsed = now - latestStart;
     		long remaining =  cal.getTimeInMillis() - now;
-    		System.out.format("Evaluation took %dms (Remaining time: %dms)\n", latestElapsed, remaining);
+    		System.out.format("Evaluation took %dms (Remaining time: %dms)%n", latestElapsed, remaining);
     		
     		if(remaining > latestElapsed)
     		{
-    			if(debugPrint) System.out.format("Searching with cutoff %d\n", cutoff);
+    			if(debugPrint) System.out.format("Searching with cutoff %d%n", cutoff);
     			try
         		{
     				latestStart = now;
@@ -103,18 +103,18 @@ public class GameLogic implements IGameLogic {
         		}
         		catch(TimeoutException e) 
         		{
-        			if(debugPrint) System.out.format("Evaluation with cutoff %d timed out\n", cutoff);
+        			if(debugPrint) System.out.format("Evaluation with cutoff %d timed out%n", cutoff);
         			cutoff--;
         		}
     		}
     		else
     		{
-    			if(debugPrint) System.out.format("Evaluation with cutoff %d not persued because too little time remaining\n", cutoff);
+    			if(debugPrint) System.out.format("Evaluation with cutoff %d not persued because too little time remaining%n", cutoff);
     			break;
     		}
     	}
     	
-    	System.out.format("Result from search with cutoff: %d\n", cutoff);
+    	System.out.format("Result from search with cutoff: %d%n", cutoff);
     	return result;
     }
     
@@ -128,7 +128,7 @@ public class GameLogic implements IGameLogic {
     		if(state.coinsInColumn(i) < m)
     		{
     			double val = minValue(state.result(i), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
-    			if(debugPrint) System.out.format("Column %d has utility %d", i, val);
+    			if(debugPrint) System.out.format("Column %d has utility %f%n", i, val);
     			if(resultUtil < val)
 				{
     				resultAction = i;
