@@ -1,10 +1,20 @@
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.TimeoutException;
+
 
 public class GameLogic implements IGameLogic {
     private int n = 0;
     private int m = 0;
     private int playerID;
     private GameState state;
-    private int cutoff = 8;
+    
+    private int cutoff;
+    private Date deadline;
+    private int timeLimit = 5; // Seconds
+    
+    private boolean debugPrint = false;
     
     public GameLogic() {
         //TODO Write your implementation for this method
@@ -64,17 +74,35 @@ public class GameLogic implements IGameLogic {
     }
 
     public int decideNextMove() {
-        // Put coin in left-most column, that isn't full already.
-    	/*for(int i = 0; i < n; i++) {
-    		if(state.coinsInColumn(i) < m) {
-    			return i;
+        int result = 0;
+        cutoff = 1;
+    	
+    	// Calculate deadline
+    	Calendar cal = new GregorianCalendar();
+    	cal.add(Calendar.SECOND, timeLimit);
+    	deadline = cal.getTime();
+    	
+    	// Start search with increasing cutoff
+    	System.out.format("Starting search with %d seconds timelimit...\n", timeLimit);
+    	while(new Date().before(deadline))
+    	{
+    		if(debugPrint) System.out.format("Searching with cutoff %d\n", cutoff);
+    		try
+    		{
+				result = minmaxDecision(this.state);
+	    		cutoff++;
+    		}
+    		catch(TimeoutException e) 
+    		{
+    			if(debugPrint) System.out.format("Evaluation with cutoff %d timed out\n", cutoff);
     		}
     	}
-    	return -1;*/
-    	return minmaxDecision(this.state);
+    	
+    	System.out.format("Result from search with cutoff: %d\n", cutoff);
+    	return result;
     }
     
-    private int minmaxDecision(GameState state)
+    private int minmaxDecision(GameState state) throws TimeoutException
     {
     	// Loop through potential actions (columns)
     	double resultUtil = Double.NEGATIVE_INFINITY;
@@ -84,7 +112,7 @@ public class GameLogic implements IGameLogic {
     		if(state.coinsInColumn(i) < m)
     		{
     			double val = minValue(state.result(i), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
-    			System.out.println("Column " + i + " has utility " + val);
+    			if(debugPrint) System.out.format("Column %d has utility %d", i, val);
     			if(resultUtil < val)
 				{
     				resultAction = i;
@@ -95,8 +123,10 @@ public class GameLogic implements IGameLogic {
     	return resultAction;
     }
     
-    private double minValue(GameState state, double a, double b, int depth)
+    private double minValue(GameState state, double a, double b, int depth) throws TimeoutException
     {
+    	if(new Date().after(deadline)) throw new TimeoutException("Out of time!");
+    	
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
     	{
@@ -119,8 +149,10 @@ public class GameLogic implements IGameLogic {
     	return result;
     }
     
-    private double maxValue(GameState state, double a, double b, int depth)
+    private double maxValue(GameState state, double a, double b, int depth) throws TimeoutException
     {
+    	if(new Date().after(deadline)) throw new TimeoutException("Out of time!");
+    	
     	Winner winner = stateGameFinished(state);
     	if(winner != Winner.NOT_FINISHED)
     	{
@@ -144,16 +176,18 @@ public class GameLogic implements IGameLogic {
     	return result;
     }
     
-    private double h(GameState state) {
+    private double h(GameState state) throws TimeoutException
+    {
     	double result = 0;
     	
     	for(int i = 0; i < n; i++)
     	{
     		for(int j = 0; j < m; j++)
     		{
-				if(state.ps(i,j) != -1)
+    			if(deadline.before(new Date())) throw new TimeoutException();
+    			if(state.ps(i,j) != -1)
 				{
-	    			result += friendlyNeighbours(i, j, state);
+    				result += friendlyNeighbours(i, j, state);
 				}
     		}
     	}
