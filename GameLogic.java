@@ -14,7 +14,7 @@ public class GameLogic implements IGameLogic {
     private Date deadline;
     private int timeLimit = 5; // Seconds
     
-    private boolean debugPrint = false;
+    private boolean debugPrint = true;
     
     public GameLogic() {
         //TODO Write your implementation for this method
@@ -84,17 +84,33 @@ public class GameLogic implements IGameLogic {
     	
     	// Start search with increasing cutoff
     	System.out.format("Starting search with %d seconds timelimit...\n", timeLimit);
+    	long latestStart = new Date().getTime();
     	while(new Date().before(deadline))
     	{
-    		if(debugPrint) System.out.format("Searching with cutoff %d\n", cutoff);
-    		try
+    		long now = new Date().getTime();
+    		long latestElapsed = now - latestStart;
+    		long remaining =  cal.getTimeInMillis() - now;
+    		System.out.format("Evaluation took %dms (Remaining time: %dms)\n", latestElapsed, remaining);
+    		
+    		if(remaining > latestElapsed)
     		{
-				result = minmaxDecision(this.state);
-	    		cutoff++;
+    			if(debugPrint) System.out.format("Searching with cutoff %d\n", cutoff);
+    			try
+        		{
+    				latestStart = now;
+        			result = minmaxDecision(this.state);
+    	    		cutoff++;
+        		}
+        		catch(TimeoutException e) 
+        		{
+        			if(debugPrint) System.out.format("Evaluation with cutoff %d timed out\n", cutoff);
+        			cutoff--;
+        		}
     		}
-    		catch(TimeoutException e) 
+    		else
     		{
-    			if(debugPrint) System.out.format("Evaluation with cutoff %d timed out\n", cutoff);
+    			if(debugPrint) System.out.format("Evaluation with cutoff %d not persued because too little time remaining\n", cutoff);
+    			break;
     		}
     	}
     	
